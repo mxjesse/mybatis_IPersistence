@@ -3,6 +3,7 @@ package com.mx.sqlSession;
 import com.mx.pojo.Configuration;
 import com.mx.pojo.MappedStatement;
 
+import java.lang.reflect.*;
 import java.util.List;
 
 /**
@@ -37,6 +38,28 @@ public class DefaultSqlSession implements SqlSession {
 
     @Override
     public <T> T getMapper(Class<T> mapperClass) {
+
+        Object instance = Proxy.newProxyInstance(mapperClass.getClassLoader(), new Class[]{mapperClass}, new InvocationHandler() {
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+
+                String methodName = method.getName();
+
+                String className = method.getDeclaringClass().getName();
+
+                String key = className + "." + methodName;
+
+                MappedStatement mappedStatement = configuration.getMappedStatementMap().get(key);
+
+                Type type = method.getGenericReturnType();
+
+                if (type instanceof ParameterizedType) {
+
+                }
+
+                return null;
+            }
+        });
         return null;
     }
 }
