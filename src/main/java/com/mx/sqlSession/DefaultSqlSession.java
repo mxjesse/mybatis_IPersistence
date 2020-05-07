@@ -20,26 +20,43 @@ public class DefaultSqlSession implements SqlSession {
         this.configuration = configuration;
     }
 
+//    @Override
+//    public <E> List<E> getAll(String statementId, Object... params) throws Exception {
+//
+//        SimpleExecutor simpleExecutor = new SimpleExecutor();
+//        MappedStatement mappedStatement = configuration.getMappedStatementMap().get(statementId);
+//
+//        List<Object> list = simpleExecutor.query(configuration.getDataSource(), mappedStatement, params);
+//
+//        return (List<E>) list;
+//    }
+
     @Override
-    public <E> List<E> getAll(String statementId, Object... params) throws Exception {
+    public <T> T selectOne(String statementId, Object... params) throws Exception {
+
+        List<Object> list = this.selectList(statementId, params);
+
+        if (list != null && list.size() == 1) {
+            return (T) list.get(0);
+        } else {
+            throw new RuntimeException("结果不止一个!");
+        }
+    }
+
+    @Override
+    public <E> List<E> selectList(String statementId, Object... params) throws Exception {
 
         SimpleExecutor simpleExecutor = new SimpleExecutor();
         MappedStatement mappedStatement = configuration.getMappedStatementMap().get(statementId);
-
         List<Object> list = simpleExecutor.query(configuration.getDataSource(), mappedStatement, params);
 
         return (List<E>) list;
     }
 
     @Override
-    public <T> T selectOne(String statementId, Object... params) {
-        return null;
-    }
-
-    @Override
     public <T> T getMapper(Class<T> mapperClass) {
 
-        Object instance = Proxy.newProxyInstance(mapperClass.getClassLoader(), new Class[]{mapperClass}, new InvocationHandler() {
+        Object proxyInstance = Proxy.newProxyInstance(mapperClass.getClassLoader(), new Class[]{mapperClass}, new InvocationHandler() {
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
@@ -47,19 +64,18 @@ public class DefaultSqlSession implements SqlSession {
 
                 String className = method.getDeclaringClass().getName();
 
-                String key = className + "." + methodName;
-
-                MappedStatement mappedStatement = configuration.getMappedStatementMap().get(key);
+                String statementId = className + "." + methodName;
 
                 Type type = method.getGenericReturnType();
 
                 if (type instanceof ParameterizedType) {
-
+                    List<Object> list = selectList(statementId, args);
+                    return list;
                 }
 
-                return null;
+                return selectOne(statementId, args);
             }
         });
-        return null;
+        return (T) proxyInstance;
     }
 }
