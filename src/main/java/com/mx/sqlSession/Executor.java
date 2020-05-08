@@ -11,5 +11,7 @@ public interface Executor {
 
     <E> List<E> query(DataSource dataSource, MappedStatement mappedStatement, Object... params) throws Exception;
 
+    <E> boolean addBatch(DataSource dataSource, MappedStatement mappedStatement, List<E> list) throws Exception;
+
     void close() throws SQLException;
 }

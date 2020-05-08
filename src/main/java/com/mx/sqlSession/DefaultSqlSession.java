@@ -54,6 +54,15 @@ public class DefaultSqlSession implements SqlSession {
     }
 
     @Override
+    public boolean addList(String statementId, List<Object> params) throws Exception {
+
+        SimpleExecutor simpleExecutor = new SimpleExecutor();
+        MappedStatement mappedStatement = configuration.getMappedStatementMap().get(statementId);
+        boolean result = simpleExecutor.addBatch(configuration.getDataSource(), mappedStatement, params);
+        return result;
+    }
+
+    @Override
     public <T> T getMapper(Class<T> mapperClass) {
 
         Object proxyInstance = Proxy.newProxyInstance(mapperClass.getClassLoader(), new Class[]{mapperClass}, new InvocationHandler() {
