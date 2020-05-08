@@ -91,7 +91,7 @@ public class SimpleExecutor implements Executor {
     }
 
     @Override
-    public <E> boolean addBatch(DataSource dataSource, MappedStatement mappedStatement, List<E> list) throws Exception {
+    public boolean addBatch(DataSource dataSource, MappedStatement mappedStatement, Object... params) throws Exception {
         //1.获取连接
         connection = dataSource.getConnection();
 
@@ -111,20 +111,23 @@ public class SimpleExecutor implements Executor {
         //6.获取参数
         List<ParameterMapping> parameterMappingList = boundSql.getParameterMappingList();
 
-        for (E e : list) {
-            for (int i = 0; i < parameterMappingList.size(); i++) {
-                ParameterMapping parameterMapping = parameterMappingList.get(i);
-                String content = parameterMapping.getContent();
+        if (params[0] instanceof List) {
+            for (Object e : (List) params[0]) {
+                for (int i = 0; i < parameterMappingList.size(); i++) {
+                    ParameterMapping parameterMapping = parameterMappingList.get(i);
+                    String content = parameterMapping.getContent();
 
-                Field field = clazz.getDeclaredField(content);
-                field.setAccessible(true);
+                    Field field = clazz.getDeclaredField(content);
+                    field.setAccessible(true);
 
-                Object o = field.get(e);
-                preparedStatement.setObject(i + 1, o);
+                    Object o = field.get(e);
+                    preparedStatement.setObject(i + 1, o);
+                }
                 preparedStatement.addBatch();
             }
+
+            preparedStatement.executeBatch();
         }
-        preparedStatement.executeBatch();
 
         return true;
     }
@@ -148,6 +151,6 @@ public class SimpleExecutor implements Executor {
 
         List<ParameterMapping> parameterMappings = mappingTokenHandler.getParameterMappings();
 
-        return new BoundSql(sql, parameterMappings);
+        return new BoundSql(s, parameterMappings);
     }
 }

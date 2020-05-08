@@ -4,6 +4,7 @@ import com.mx.pojo.Configuration;
 import com.mx.pojo.MappedStatement;
 
 import java.lang.reflect.*;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -54,10 +55,11 @@ public class DefaultSqlSession implements SqlSession {
     }
 
     @Override
-    public boolean addList(String statementId, List<Object> params) throws Exception {
+    public boolean addList(String statementId, Object... params) throws Exception {
 
         SimpleExecutor simpleExecutor = new SimpleExecutor();
         MappedStatement mappedStatement = configuration.getMappedStatementMap().get(statementId);
+
         boolean result = simpleExecutor.addBatch(configuration.getDataSource(), mappedStatement, params);
         return result;
     }
@@ -80,6 +82,9 @@ public class DefaultSqlSession implements SqlSession {
                 if (type instanceof ParameterizedType) {
                     List<Object> list = selectList(statementId, args);
                     return list;
+                } else if (type.getTypeName().equalsIgnoreCase("boolean") ) {
+                    boolean b = addList(statementId, args);
+                    return b;
                 }
 
                 return selectOne(statementId, args);

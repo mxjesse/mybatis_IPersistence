@@ -50,6 +50,24 @@ public class XMLMapperBuilder {
             configuration.getMappedStatementMap().put(key, mappedStatement);
         }
 
+        List<Element> insertNodes = rootElement.selectNodes("//insert");
+
+        for (Element insert : insertNodes) {
+            String id = insert.attributeValue("id");
+            String resultType = insert.attributeValue("resultType");
+            String parameterType = insert.attributeValue("parameterType");
+            String sql = insert.getTextTrim();
+
+            MappedStatement mappedStatement = new MappedStatement();
+            mappedStatement.setId(id);
+            mappedStatement.setResultType(resultType);
+            mappedStatement.setParameterType(parameterType);
+            mappedStatement.setSql(sql);
+
+            String key = namespace + "." + id;
+            configuration.getMappedStatementMap().put(key, mappedStatement);
+        }
+
         return configuration;
     }
 }

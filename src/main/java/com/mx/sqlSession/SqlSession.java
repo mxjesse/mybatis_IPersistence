@@ -10,7 +10,7 @@ public interface SqlSession {
 
     <E> List<E> selectList(String statementId, Object... params) throws Exception;
 
-    boolean addList(String statementId, List<Object> params) throws Exception;
+    boolean addList(String statementId, Object... params) throws Exception;
 
     /**
      * 生成代理类
