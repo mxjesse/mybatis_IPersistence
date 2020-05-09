@@ -17,6 +17,9 @@ public class MappedStatement {
     //sql语句
     private String sql;
 
+    //mapper.xml标签 select|insert|update|delete
+    private String actionType;
+
     public String getId() {
         return id;
     }
@@ -47,5 +50,13 @@ public class MappedStatement {
 
     public void setSql(String sql) {
         this.sql = sql;
+    }
+
+    public String getActionType() {
+        return actionType;
+    }
+
+    public void setActionType(String actionType) {
+        this.actionType = actionType;
     }
 }

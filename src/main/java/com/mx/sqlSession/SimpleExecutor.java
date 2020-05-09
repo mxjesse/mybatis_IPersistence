@@ -92,6 +92,7 @@ public class SimpleExecutor implements Executor {
 
     @Override
     public boolean addBatch(DataSource dataSource, MappedStatement mappedStatement, Object... params) throws Exception {
+
         //1.获取连接
         connection = dataSource.getConnection();
 
@@ -127,6 +128,94 @@ public class SimpleExecutor implements Executor {
             }
 
             preparedStatement.executeBatch();
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean update(DataSource dataSource, MappedStatement mappedStatement, Object... params) throws Exception {
+
+        //1.获取连接
+        connection = dataSource.getConnection();
+
+        //2.获取sql
+        String sql = mappedStatement.getSql();
+
+        //3.解析sql
+        BoundSql boundSql = parseSql(sql);
+
+        //4.获取预处理对象
+        PreparedStatement preparedStatement = connection.prepareStatement(boundSql.getSql());
+
+        //5.获取参数类型
+        String parameterType = mappedStatement.getParameterType();
+        Class<?> clazz = Class.forName(parameterType);
+
+        //6.获取参数
+        List<ParameterMapping> parameterMappingList = boundSql.getParameterMappingList();
+
+        for (int i = 0; i < parameterMappingList.size(); i++) {
+            ParameterMapping parameterMapping = parameterMappingList.get(i);
+            String content = parameterMapping.getContent();
+
+            Field field = clazz.getDeclaredField(content);
+            field.setAccessible(true);
+
+            Object o = field.get(params[0]);
+
+            preparedStatement.setObject(i + 1, o);
+        }
+
+        //执行sql
+        try {
+            preparedStatement.executeUpdate();
+        } catch (Exception e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean delete(DataSource dataSource, MappedStatement mappedStatement, Object... params) throws Exception {
+
+        //1.获取连接
+        connection = dataSource.getConnection();
+
+        //2.获取sql
+        String sql = mappedStatement.getSql();
+
+        //3.解析sql
+        BoundSql boundSql = parseSql(sql);
+
+        //4.获取预处理对象
+        PreparedStatement preparedStatement = connection.prepareStatement(boundSql.getSql());
+
+        //5.获取参数类型
+        String parameterType = mappedStatement.getParameterType();
+        Class<?> clazz = Class.forName(parameterType);
+
+        //6.获取参数
+        List<ParameterMapping> parameterMappingList = boundSql.getParameterMappingList();
+
+        for (int i = 0; i < parameterMappingList.size(); i++) {
+            ParameterMapping parameterMapping = parameterMappingList.get(i);
+            String content = parameterMapping.getContent();
+
+            Field field = clazz.getDeclaredField(content);
+            field.setAccessible(true);
+
+            Object o = field.get(params[0]);
+
+            preparedStatement.setObject(i + 1, o);
+        }
+
+        //执行sql
+        try {
+            preparedStatement.execute();
+        } catch (Exception e) {
+            return false;
         }
 
         return true;

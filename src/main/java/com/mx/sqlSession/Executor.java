@@ -13,5 +13,9 @@ public interface Executor {
 
     boolean addBatch(DataSource dataSource, MappedStatement mappedStatement, Object... params) throws Exception;
 
+    boolean update(DataSource dataSource, MappedStatement mappedStatement, Object... params) throws Exception;
+
+    boolean delete(DataSource dataSource, MappedStatement mappedStatement, Object... params) throws Exception;
+
     void close() throws SQLException;
 }

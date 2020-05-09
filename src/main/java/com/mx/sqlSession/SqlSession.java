@@ -12,6 +12,10 @@ public interface SqlSession {
 
     boolean addList(String statementId, Object... params) throws Exception;
 
+    boolean update(String statementId, Object... params) throws Exception;
+
+    boolean delete(String statementId, Object... params) throws Exception;
+
     /**
      * 生成代理类
      * @param mapperClass

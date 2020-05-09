@@ -1,11 +1,13 @@
 package com.mx.sqlSession;
 
+import com.mx.enums.ActionTypeEnum;
 import com.mx.pojo.Configuration;
 import com.mx.pojo.MappedStatement;
 
 import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author mx
@@ -65,7 +67,28 @@ public class DefaultSqlSession implements SqlSession {
     }
 
     @Override
+    public boolean update(String statementId, Object... params) throws Exception {
+
+        SimpleExecutor simpleExecutor = new SimpleExecutor();
+        MappedStatement mappedStatement = configuration.getMappedStatementMap().get(statementId);
+
+        boolean result = simpleExecutor.update(configuration.getDataSource(), mappedStatement, params);
+        return result;
+    }
+
+    @Override
+    public boolean delete(String statementId, Object... params) throws Exception {
+        SimpleExecutor simpleExecutor = new SimpleExecutor();
+        MappedStatement mappedStatement = configuration.getMappedStatementMap().get(statementId);
+
+        boolean result = simpleExecutor.delete(configuration.getDataSource(), mappedStatement, params);
+        return result;
+    }
+
+    @Override
     public <T> T getMapper(Class<T> mapperClass) {
+
+        Map<String, MappedStatement> mappedStatementMap = configuration.getMappedStatementMap();
 
         Object proxyInstance = Proxy.newProxyInstance(mapperClass.getClassLoader(), new Class[]{mapperClass}, new InvocationHandler() {
             @Override
@@ -79,13 +102,34 @@ public class DefaultSqlSession implements SqlSession {
 
                 Type type = method.getGenericReturnType();
 
-                if (type instanceof ParameterizedType) {
+                MappedStatement mappedStatement = mappedStatementMap.get(statementId);
+
+//                System.out.println("id :" + mappedStatement.getId());
+                System.out.println("statementId: " + statementId +  ", actionType: " + mappedStatement.getActionType());
+
+                //通过actionType判断返回值
+                String actionType = mappedStatement.getActionType();
+                if (ActionTypeEnum.SELECT.getActionType().equals(actionType)) {
                     List<Object> list = selectList(statementId, args);
                     return list;
-                } else if (type.getTypeName().equalsIgnoreCase("boolean") ) {
+                } else if (ActionTypeEnum.INSERT.getActionType().equals(actionType)) {
                     boolean b = addList(statementId, args);
                     return b;
+                } else if (ActionTypeEnum.UPDATE.getActionType().equals(actionType)) {
+                    boolean b = update(statementId, args);
+                    return b;
+                } else if (ActionTypeEnum.DELETE.getActionType().equals(actionType)) {
+                    boolean b = delete(statementId, args);
+                    return b;
                 }
+
+//                if (type instanceof ParameterizedType) {
+//                    List<Object> list = selectList(statementId, args);
+//                    return list;
+//                } else if (type.getTypeName().equalsIgnoreCase("boolean") ) {
+//                    boolean b = addList(statementId, args);
+//                    return b;
+//                }
 
                 return selectOne(statementId, args);
             }
